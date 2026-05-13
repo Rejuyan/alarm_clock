@@ -16,6 +16,7 @@ class _AddAlarmScreenState extends ConsumerState<AddAlarmScreen> {
   AlarmCategory selectedCategory = AlarmCategory.sleep;
   bool shakeToStop = false;
   bool mathChallenge = false;
+  bool isLoading = false;
 
   void onTimeChanged(Time time) {
     setState(() {
@@ -34,16 +35,40 @@ class _AddAlarmScreenState extends ConsumerState<AddAlarmScreen> {
   }
 
   Future<void> saveAlarm() async {
-    final alarmSettings = SmartAlarmModel(
-      id: DateTime.now().millisecondsSinceEpoch % 10000,
-      dateTime: selectedTime,
-      category: selectedCategory,
-      shakeToStop: shakeToStop,
-      mathChallenge: mathChallenge,
-    ).toAlarmSettings();
+    setState(() => isLoading = true);
+    
+    try {
+      final alarmSettings = SmartAlarmModel(
+        id: DateTime.now().millisecondsSinceEpoch % 10000,
+        dateTime: selectedTime,
+        category: selectedCategory,
+        shakeToStop: shakeToStop,
+        mathChallenge: mathChallenge,
+      ).toAlarmSettings();
 
-    await ref.read(alarmListProvider.notifier).addAlarm(alarmSettings);
-    if (mounted) Navigator.pop(context);
+      await ref.read(alarmListProvider.notifier).addAlarm(alarmSettings);
+      
+      if (mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Alarm set for ${selectedCategory.name} at ${TimeOfDay.fromDateTime(selectedTime).format(context)}'),
+            backgroundColor: Theme.of(context).primaryColor,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to set alarm: Please ensure audio files exist in assets/'),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => isLoading = false);
+    }
   }
 
   @override
@@ -180,7 +205,7 @@ class _AddAlarmScreenState extends ConsumerState<AddAlarmScreen> {
                     width: double.infinity,
                     height: 64,
                     child: ElevatedButton(
-                      onPressed: saveAlarm,
+                      onPressed: isLoading ? null : saveAlarm,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Theme.of(context).primaryColor,
                         foregroundColor: Colors.white,
@@ -189,11 +214,14 @@ class _AddAlarmScreenState extends ConsumerState<AddAlarmScreen> {
                         ),
                         elevation: 8,
                         shadowColor: Theme.of(context).primaryColor.withOpacity(0.5),
+                        disabledBackgroundColor: Theme.of(context).primaryColor.withOpacity(0.5),
                       ),
-                      child: const Text(
-                        'Activate Alarm',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                      ),
+                      child: isLoading 
+                        ? const CircularProgressIndicator(color: Colors.white)
+                        : const Text(
+                            'Activate Alarm',
+                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                          ),
                     ),
                   ),
                   const SizedBox(height: 32),

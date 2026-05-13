@@ -40,12 +40,14 @@ Aura Alarm is a premium, feature-rich Flutter application designed to revolution
 ### Installation
 
 1. **Clone the repository:**
+
    ```bash
    git clone https://github.com/Rejuyan/alarm_clock.git
    cd alarm_clock
    ```
 
 2. **Install dependencies:**
+
    ```bash
    flutter pub get
    ```
@@ -54,6 +56,7 @@ Aura Alarm is a premium, feature-rich Flutter application designed to revolution
    Ensure you have your `.mp3` files in the `assets/` directory (e.g., `wake_up.mp3`, `salat.mp3`).
 
 4. **Run the app:**
+
    ```bash
    flutter run
    ```
