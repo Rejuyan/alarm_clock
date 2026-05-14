@@ -122,73 +122,73 @@ class _AddAlarmScreenState extends ConsumerState<AddAlarmScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Set Alarm Time',
-                            style: theme.textTheme.headlineMedium?.copyWith(
-                                  fontWeight: FontWeight.w900,
-                                  letterSpacing: -1,
-                                ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'Tap the time to pick manually',
-                            style: TextStyle(color: Colors.white.withOpacity(0.3), fontSize: 13),
-                          ),
-                        ],
-                      ),
-                      GestureDetector(
-                        onTap: _selectTimeManual,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                          decoration: BoxDecoration(
-                            color: theme.primaryColor.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: theme.primaryColor.withOpacity(0.2)),
-                          ),
-                          child: Text(
-                            DateFormat('hh:mm a').format(selectedTime),
-                            style: TextStyle(
-                              color: theme.primaryColor,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18,
-                            ),
-                          ),
+                  Text(
+                    'Set Alarm Time',
+                    style: theme.textTheme.headlineMedium?.copyWith(
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: -1,
                         ),
-                      ),
-                    ],
                   ),
                   const SizedBox(height: 24),
                   
-                  // Visual Picker
+                  // Massive Clickable Time Display
                   Center(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF111116),
-                        borderRadius: BorderRadius.circular(32),
-                        border: Border.all(color: Colors.white.withOpacity(0.05)),
-                      ),
-                      padding: const EdgeInsets.all(8),
-                      child: SizedBox(
-                        height: 280,
-                        child: showPicker(
-                          context: context,
-                          value: Time(hour: selectedTime.hour, minute: selectedTime.minute),
-                          onChange: onTimeChanged,
-                          is24HrFormat: false,
-                          accentColor: theme.primaryColor,
-                          unselectedColor: Colors.white24,
-                          borderRadius: 24,
-                          elevation: 0,
-                          barrierDismissible: false,
-                          isInlinePicker: true,
-                          isOnChangeValueMode: true,
-                          displayVisualizer: true,
+                    child: GestureDetector(
+                      onTap: _selectTimeManual,
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(vertical: 40),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF111116),
+                          borderRadius: BorderRadius.circular(32),
+                          border: Border.all(color: theme.primaryColor.withOpacity(0.3), width: 2),
+                          boxShadow: [
+                            BoxShadow(
+                              color: theme.primaryColor.withOpacity(0.1),
+                              blurRadius: 20,
+                              spreadRadius: 2,
+                            ),
+                          ]
+                        ),
+                        child: Column(
+                          children: [
+                            Text(
+                              DateFormat('hh:mm').format(selectedTime),
+                              style: const TextStyle(
+                                fontSize: 72,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: -2,
+                                color: Colors.white,
+                              ),
+                            ),
+                            Text(
+                              DateFormat('a').format(selectedTime),
+                              style: TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                                color: theme.primaryColor,
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.05),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.touch_app, size: 16, color: theme.primaryColor),
+                                  const SizedBox(width: 8),
+                                  const Text(
+                                    'Tap to set custom time',
+                                    style: TextStyle(color: Colors.white70, fontWeight: FontWeight.w600),
+                                  ),
+                                ],
+                              ),
+                            )
+                          ],
                         ),
                       ),
                     ),
