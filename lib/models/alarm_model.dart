@@ -96,12 +96,12 @@ class SmartAlarmModel {
         body: label ?? 'Time for ${category.name}!',
         stopButton: 'Stop',
       ),
-      volumeSettings: VolumeSettings.fade(
-        volume: 0.8,
-        fadeDuration: category == AlarmCategory.sleep 
-            ? const Duration(seconds: 30) 
-            : Duration.zero,
-      ),
+      volumeSettings: category == AlarmCategory.sleep
+          ? VolumeSettings.fade(
+              volume: 0.8,
+              fadeDuration: const Duration(seconds: 30),
+            )
+          : VolumeSettings.fixed(volume: 0.8),
     );
   }
 
