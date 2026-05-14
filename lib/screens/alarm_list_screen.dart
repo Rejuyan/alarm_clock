@@ -10,6 +10,7 @@ import 'package:intl/intl.dart';
 import 'package:lottie/lottie.dart';
 import 'package:syncfusion_flutter_gauges/gauges.dart';
 import 'dart:async';
+import 'package:permission_handler/permission_handler.dart';
 
 class AlarmListScreen extends ConsumerStatefulWidget {
   const AlarmListScreen({super.key});
@@ -320,6 +321,14 @@ class _AlarmListScreenState extends ConsumerState<AlarmListScreen> {
                     ),
                     avatar: Icon(alarm.category.icon, size: 16, color: Theme.of(context).primaryColor),
                     onPressed: () async {
+                      // Check for permissions at runtime
+                      if (await Permission.notification.isDenied) {
+                        await Permission.notification.request();
+                      }
+                      if (await Permission.scheduleExactAlarm.isDenied) {
+                        await Permission.scheduleExactAlarm.request();
+                      }
+
                       // Adjust time to future if needed
                       var newTime = DateTime(
                         DateTime.now().year, DateTime.now().month, DateTime.now().day,

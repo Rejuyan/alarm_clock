@@ -4,6 +4,7 @@ import 'package:day_night_time_picker/day_night_time_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class AddAlarmScreen extends ConsumerStatefulWidget {
   const AddAlarmScreen({super.key});
@@ -62,6 +63,14 @@ class _AddAlarmScreenState extends ConsumerState<AddAlarmScreen> {
     setState(() => isLoading = true);
     
     try {
+      // Check for permissions at runtime
+      if (await Permission.notification.isDenied) {
+        await Permission.notification.request();
+      }
+      if (await Permission.scheduleExactAlarm.isDenied) {
+        await Permission.scheduleExactAlarm.request();
+      }
+
       if (selectedTime.isBefore(DateTime.now())) {
         selectedTime = selectedTime.add(const Duration(days: 1));
       }
