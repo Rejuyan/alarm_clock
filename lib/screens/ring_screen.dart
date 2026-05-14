@@ -40,21 +40,29 @@ class _RingScreenState extends State<RingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final title = widget.alarmSettings.notificationSettings.title;
+    final timeStr = DateFormat('hh:mm').format(DateTime.now());
+
     return Scaffold(
       body: Stack(
         alignment: Alignment.center,
         children: [
+          // Background
           Container(
             width: double.infinity,
             height: double.infinity,
             color: const Color(0xFF08080A),
           ),
+          
+          // Background Animation
           Positioned.fill(
             child: Opacity(
-              opacity: 0.3,
+              opacity: 0.2,
               child: Lottie.network(
                 'https://assets10.lottiefiles.com/packages/lf20_t9gkkhz4.json',
                 fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => const SizedBox(),
               ),
             ),
           ),
@@ -64,86 +72,54 @@ class _RingScreenState extends State<RingScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const Spacer(),
+                
+                // Ringing Bell Animation
                 Animate(
                   onPlay: (controller) => controller.repeat(),
                   child: Lottie.network(
                     'https://assets3.lottiefiles.com/packages/lf20_6p8y1tpf.json',
-                    height: 200,
+                    height: 180,
+                    errorBuilder: (context, error, stackTrace) => 
+                      Icon(Icons.notifications_active, size: 100, color: theme.primaryColor),
                   ),
-                ).shake(hz: 4, curve: Curves.easeInOut),
+                ).shake(hz: 2, curve: Curves.easeInOut, rotation: 0.1),
                 
-                const SizedBox(height: 40),
-                Text(
-                  widget.alarmSettings.notificationSettings.title,
-                  style: const TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: 2,
-                    color: Colors.white70,
-                  ),
-                ).animate().fadeIn(duration: 1.seconds).slideY(begin: 0.2),
+                const SizedBox(height: 48),
                 
-                const SizedBox(height: 12),
+                // Alarm Title
                 Text(
-                  DateFormat('hh:mm').format(DateTime.now()),
+                  title,
                   style: const TextStyle(
-                    fontSize: 100,
+                    fontSize: 32,
                     fontWeight: FontWeight.bold,
-                    letterSpacing: -4,
+                    letterSpacing: 1.5,
+                    color: Colors.white,
                   ),
-                ).animate().scale(duration: 600.ms, curve: Curves.elasticOut),
+                ).animate().fadeIn(duration: 800.ms).slideY(begin: 0.3),
+                
+                const SizedBox(height: 8),
+                
+                // Digital Time
+                Text(
+                  timeStr,
+                  style: const TextStyle(
+                    fontSize: 110,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: -5,
+                  ),
+                ).animate().scale(duration: 700.ms, curve: Curves.elasticOut),
                 
                 const Spacer(),
                 
+                // Dismiss Interaction
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 40),
+                  padding: const EdgeInsets.symmetric(horizontal: 48),
                   child: Column(
                     children: [
-                      GestureDetector(
-                        onHorizontalDragEnd: (details) {
-                          if ((details.primaryVelocity ?? 0) > 500) {
-                            _stopAlarm();
-                          }
-                        },
-                        child: Container(
-                          width: double.infinity,
-                          height: 80,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(40),
-                          ),
-                          child: Stack(
-                            children: [
-                              Center(
-                                child: Text(
-                                  'Swipe Right to Stop',
-                                  style: TextStyle(
-                                    color: Colors.black.withOpacity(0.5),
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                              Positioned(
-                                left: 8,
-                                top: 8,
-                                bottom: 8,
-                                child: Animate(
-                                  onPlay: (controller) => controller.repeat(),
-                                  child: Container(
-                                    width: 64,
-                                    decoration: BoxDecoration(
-                                      color: Theme.of(context).primaryColor,
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: const Icon(Icons.chevron_right, color: Colors.white, size: 32),
-                                  ),
-                                ).moveX(begin: 0, end: 200, duration: 1.5.seconds, curve: Curves.easeInOut),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 24),
+                      _buildSwipeToStopButton(theme),
+                      const SizedBox(height: 32),
+                      
+                      // Snooze Button
                       TextButton(
                         onPressed: () {
                           final now = DateTime.now();
@@ -156,29 +132,87 @@ class _RingScreenState extends State<RingScreen> {
                           });
                         },
                         child: Text(
-                          'Snooze (9m)',
+                          'Snooze for 9 minutes',
                           style: TextStyle(
-                            fontSize: 18,
+                            fontSize: 16,
                             color: Colors.white.withOpacity(0.5),
-                            fontWeight: FontWeight.w600,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 60),
+                const SizedBox(height: 48),
               ],
             ),
           ),
           
+          // Celebration
           ConfettiWidget(
             confettiController: _confettiController,
             blastDirectionality: BlastDirectionality.explosive,
             shouldLoop: false,
-            colors: const [Colors.pink, Colors.blue, Colors.orange, Colors.purple],
+            colors: const [Colors.indigo, Colors.blue, Colors.pink, Colors.cyan],
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildSwipeToStopButton(ThemeData theme) {
+    return GestureDetector(
+      onHorizontalDragEnd: (details) {
+        if ((details.primaryVelocity ?? 0) > 400) {
+          _stopAlarm();
+        }
+      },
+      child: Container(
+        width: double.infinity,
+        height: 80,
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.08),
+          borderRadius: BorderRadius.circular(40),
+          border: Border.all(color: Colors.white10),
+        ),
+        child: Stack(
+          children: [
+            Center(
+              child: Text(
+                'SWIPE TO DISMISS',
+                style: TextStyle(
+                  color: Colors.white.withOpacity(0.3),
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 2,
+                  fontSize: 12,
+                ),
+              ),
+            ),
+            Positioned(
+              left: 8,
+              top: 8,
+              bottom: 8,
+              child: Animate(
+                onPlay: (controller) => controller.repeat(),
+                child: Container(
+                  width: 64,
+                  decoration: BoxDecoration(
+                    color: theme.primaryColor,
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: theme.primaryColor.withOpacity(0.4),
+                        blurRadius: 15,
+                        spreadRadius: 2,
+                      ),
+                    ],
+                  ),
+                  child: const Icon(Icons.chevron_right_rounded, color: Colors.white, size: 36),
+                ),
+              ).moveX(begin: 0, end: 200, duration: 1.8.seconds, curve: Curves.easeInOut),
+            ),
+          ],
+        ),
       ),
     );
   }
