@@ -1,6 +1,7 @@
 import 'package:alarm/alarm.dart';
 import 'package:alarm_clock/screens/add_alarm_screen.dart';
 import 'package:alarm_clock/screens/ring_screen.dart';
+import 'package:alarm_clock/models/alarm_model.dart';
 import 'package:alarm_clock/services/alarm_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
