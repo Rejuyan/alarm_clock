@@ -62,6 +62,10 @@ class _AddAlarmScreenState extends ConsumerState<AddAlarmScreen> {
     setState(() => isLoading = true);
     
     try {
+      if (selectedTime.isBefore(DateTime.now())) {
+        selectedTime = selectedTime.add(const Duration(days: 1));
+      }
+
       final alarmSettings = SmartAlarmModel(
         id: DateTime.now().millisecondsSinceEpoch % 10000,
         dateTime: selectedTime,
@@ -84,8 +88,8 @@ class _AddAlarmScreenState extends ConsumerState<AddAlarmScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Failed to set alarm. Ensure assets are ready.'),
+          SnackBar(
+            content: Text('Failed to set alarm: ${e.toString()}'),
             backgroundColor: Colors.redAccent,
           ),
         );
