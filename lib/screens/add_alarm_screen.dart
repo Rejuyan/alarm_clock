@@ -66,15 +66,16 @@ class _AddAlarmScreenState extends ConsumerState<AddAlarmScreen> {
         selectedTime = selectedTime.add(const Duration(days: 1));
       }
 
-      final alarmSettings = SmartAlarmModel(
+      final smartModel = SmartAlarmModel(
         id: DateTime.now().millisecondsSinceEpoch % 10000,
         dateTime: selectedTime,
         category: selectedCategory,
         shakeToStop: shakeToStop,
         mathChallenge: mathChallenge,
-      ).toAlarmSettings();
+      );
 
-      await ref.read(alarmListProvider.notifier).addAlarm(alarmSettings);
+      await ref.read(alarmListProvider.notifier).addAlarm(smartModel.toAlarmSettings());
+      await ref.read(alarmHistoryProvider.notifier).addToHistory(smartModel);
       
       if (mounted) {
         Navigator.pop(context);

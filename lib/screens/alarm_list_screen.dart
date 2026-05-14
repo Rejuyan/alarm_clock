@@ -53,6 +53,7 @@ class _AlarmListScreenState extends ConsumerState<AlarmListScreen> {
   @override
   Widget build(BuildContext context) {
     final alarmsAsync = ref.watch(alarmListProvider);
+    final historyAsync = ref.watch(alarmHistoryProvider);
 
     return Scaffold(
       body: SafeArea(
@@ -65,6 +66,8 @@ class _AlarmListScreenState extends ConsumerState<AlarmListScreen> {
                 child: Column(
                   children: [
                     _buildAnalogClock(),
+                    const SizedBox(height: 32),
+                    _buildHistorySection(historyAsync),
                     const SizedBox(height: 24),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -279,6 +282,77 @@ class _AlarmListScreenState extends ConsumerState<AlarmListScreen> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => const AddAlarmScreen(),
+    );
+  }
+
+  Widget _buildHistorySection(AsyncValue<List<SmartAlarmModel>> historyAsync) {
+    return historyAsync.when(
+      data: (history) {
+        if (history.isEmpty) return const SizedBox.shrink();
+        
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Quick Add',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.white.withOpacity(0.5),
+              ),
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              height: 48,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: history.length,
+                separatorBuilder: (context, index) => const SizedBox(width: 12),
+                itemBuilder: (context, index) {
+                  final alarm = history[index];
+                  return ActionChip(
+                    backgroundColor: Theme.of(context).primaryColor.withOpacity(0.1),
+                    side: BorderSide(color: Theme.of(context).primaryColor.withOpacity(0.3)),
+                    label: Text(
+                      '${alarm.category.name} ${DateFormat('hh:mm a').format(alarm.dateTime)}',
+                      style: TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.bold),
+                    ),
+                    avatar: Icon(alarm.category.icon, size: 16, color: Theme.of(context).primaryColor),
+                    onPressed: () async {
+                      // Adjust time to future if needed
+                      var newTime = DateTime(
+                        DateTime.now().year, DateTime.now().month, DateTime.now().day,
+                        alarm.dateTime.hour, alarm.dateTime.minute
+                      );
+                      if (newTime.isBefore(DateTime.now())) {
+                        newTime = newTime.add(const Duration(days: 1));
+                      }
+                      
+                      final newAlarm = SmartAlarmModel(
+                        id: DateTime.now().millisecondsSinceEpoch % 10000,
+                        dateTime: newTime,
+                        category: alarm.category,
+                        shakeToStop: alarm.shakeToStop,
+                        mathChallenge: alarm.mathChallenge,
+                      );
+                      
+                      await ref.read(alarmListProvider.notifier).addAlarm(newAlarm.toAlarmSettings());
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Quick added: ${alarm.category.name} at ${DateFormat('hh:mm a').format(newTime)}'),
+                          backgroundColor: Theme.of(context).primaryColor,
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
+        );
+      },
+      loading: () => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
     );
   }
 }

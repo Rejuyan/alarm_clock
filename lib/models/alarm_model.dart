@@ -104,4 +104,28 @@ class SmartAlarmModel {
       ),
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'dateTime': dateTime.toIso8601String(),
+      'category': category.index,
+      'label': label,
+      'enabled': enabled,
+      'shakeToStop': shakeToStop,
+      'mathChallenge': mathChallenge,
+    };
+  }
+
+  factory SmartAlarmModel.fromJson(Map<String, dynamic> json) {
+    return SmartAlarmModel(
+      id: json['id'],
+      dateTime: DateTime.parse(json['dateTime']),
+      category: AlarmCategory.values[json['category'] ?? 0],
+      label: json['label'],
+      enabled: json['enabled'] ?? true,
+      shakeToStop: json['shakeToStop'] ?? false,
+      mathChallenge: json['mathChallenge'] ?? false,
+    );
+  }
 }
