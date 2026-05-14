@@ -3,6 +3,7 @@ import 'package:alarm_clock/services/alarm_provider.dart';
 import 'package:day_night_time_picker/day_night_time_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
 class AddAlarmScreen extends ConsumerStatefulWidget {
   const AddAlarmScreen({super.key});
@@ -34,6 +35,29 @@ class _AddAlarmScreenState extends ConsumerState<AddAlarmScreen> {
     });
   }
 
+  Future<void> _selectTimeManual() async {
+    final TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(selectedTime),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: ColorScheme.dark(
+              primary: Theme.of(context).primaryColor,
+              onPrimary: Colors.white,
+              surface: const Color(0xFF16161D),
+              onSurface: Colors.white,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+    if (picked != null) {
+      onTimeChanged(Time(hour: picked.hour, minute: picked.minute));
+    }
+  }
+
   Future<void> saveAlarm() async {
     setState(() => isLoading = true);
     
@@ -52,7 +76,7 @@ class _AddAlarmScreenState extends ConsumerState<AddAlarmScreen> {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Alarm set for ${selectedCategory.name} at ${TimeOfDay.fromDateTime(selectedTime).format(context)}'),
+            content: Text('Alarm set for ${selectedCategory.name} at ${DateFormat('hh:mm a').format(selectedTime)}'),
             backgroundColor: Theme.of(context).primaryColor,
           ),
         );
@@ -60,8 +84,8 @@ class _AddAlarmScreenState extends ConsumerState<AddAlarmScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to set alarm: Please ensure audio files exist in assets/'),
+          const SnackBar(
+            content: Text('Failed to set alarm. Ensure assets are ready.'),
             backgroundColor: Colors.redAccent,
           ),
         );
@@ -73,157 +97,128 @@ class _AddAlarmScreenState extends ConsumerState<AddAlarmScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    
     return Container(
-      height: MediaQuery.of(context).size.height * 0.9,
+      height: MediaQuery.of(context).size.height * 0.92,
       decoration: const BoxDecoration(
         color: Color(0xFF08080A),
-        borderRadius: BorderRadius.vertical(top: Radius.circular(40)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(44)),
       ),
       child: Column(
         children: [
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
           Container(
-            width: 40,
-            height: 4,
+            width: 50,
+            height: 5,
             decoration: BoxDecoration(
-              color: Colors.white24,
-              borderRadius: BorderRadius.circular(2),
+              color: Colors.white10,
+              borderRadius: BorderRadius.circular(10),
             ),
           ),
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(32),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Set Alarm',
-                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Set Alarm Time',
+                            style: theme.textTheme.headlineMedium?.copyWith(
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: -1,
+                                ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Tap the time to pick manually',
+                            style: TextStyle(color: Colors.white.withOpacity(0.3), fontSize: 13),
+                          ),
+                        ],
+                      ),
+                      GestureDetector(
+                        onTap: _selectTimeManual,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                          decoration: BoxDecoration(
+                            color: theme.primaryColor.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: theme.primaryColor.withOpacity(0.2)),
+                          ),
+                          child: Text(
+                            DateFormat('hh:mm a').format(selectedTime),
+                            style: TextStyle(
+                              color: theme.primaryColor,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                            ),
+                          ),
                         ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Choose your wake-up experience',
-                    style: TextStyle(color: Colors.white.withOpacity(0.4)),
-                  ),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 24),
+                  
+                  // Visual Picker
                   Center(
-                    child: SizedBox(
-                      height: 300,
-                      child: showPicker(
-                        context: context,
-                        value: Time(hour: selectedTime.hour, minute: selectedTime.minute),
-                        onChange: onTimeChanged,
-                        is24HrFormat: false,
-                        accentColor: Theme.of(context).primaryColor,
-                        unselectedColor: Colors.white12,
-                        borderRadius: 32,
-                        elevation: 0,
-                        barrierDismissible: false,
-                        isInlinePicker: true,
-                        isOnChangeValueMode: true,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF111116),
+                        borderRadius: BorderRadius.circular(32),
+                        border: Border.all(color: Colors.white.withOpacity(0.05)),
+                      ),
+                      padding: const EdgeInsets.all(8),
+                      child: SizedBox(
+                        height: 280,
+                        child: showPicker(
+                          context: context,
+                          value: Time(hour: selectedTime.hour, minute: selectedTime.minute),
+                          onChange: onTimeChanged,
+                          is24HrFormat: false,
+                          accentColor: theme.primaryColor,
+                          unselectedColor: Colors.white24,
+                          borderRadius: 24,
+                          elevation: 0,
+                          barrierDismissible: false,
+                          isInlinePicker: true,
+                          isOnChangeValueMode: true,
+                          displayVisualizer: true,
+                        ),
                       ),
                     ),
                   ),
+                  
                   const SizedBox(height: 32),
-                  const Text(
-                    'Routine',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 0.5,
-                    ),
-                  ),
+                  _buildSectionTitle('Alarm Category'),
                   const SizedBox(height: 16),
-                  SizedBox(
-                    height: 110,
-                    child: ListView.separated(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: AlarmCategory.values.length,
-                      separatorBuilder: (_, __) => const SizedBox(width: 16),
-                      itemBuilder: (context, index) {
-                        final category = AlarmCategory.values[index];
-                        final isSelected = selectedCategory == category;
-                        return GestureDetector(
-                          onTap: () => setState(() => selectedCategory = category),
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 300),
-                            width: 90,
-                            decoration: BoxDecoration(
-                              color: isSelected
-                                  ? Theme.of(context).primaryColor
-                                  : const Color(0xFF16161D),
-                              borderRadius: BorderRadius.circular(24),
-                              border: Border.all(
-                                color: isSelected
-                                    ? Colors.white24
-                                    : Colors.white.withOpacity(0.05),
-                              ),
-                            ),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  category.icon,
-                                  color: isSelected ? Colors.white : Colors.white38,
-                                  size: 28,
-                                ),
-                                const SizedBox(height: 12),
-                                Text(
-                                  category.name,
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    color: isSelected ? Colors.white : Colors.white38,
-                                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                  const SizedBox(height: 40),
+                  _buildCategoryList(),
+                  
+                  const SizedBox(height: 32),
+                  _buildSectionTitle('Smart Challenges'),
+                  const SizedBox(height: 16),
                   _buildSmartToggle(
-                    'Shake to Wake',
-                    'You must shake the device to stop',
+                    'Shake to Stop',
+                    'Requires physical movement',
                     Icons.vibration_rounded,
                     shakeToStop,
                     (val) => setState(() => shakeToStop = val),
                   ),
                   _buildSmartToggle(
-                    'Mental Math',
-                    'Solve a puzzle to ensure clarity',
+                    'Math Challenge',
+                    'Solve problems to dismiss',
                     Icons.psychology_outlined,
                     mathChallenge,
                     (val) => setState(() => mathChallenge = val),
                   ),
-                  const SizedBox(height: 40),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 64,
-                    child: ElevatedButton(
-                      onPressed: isLoading ? null : saveAlarm,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Theme.of(context).primaryColor,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        elevation: 8,
-                        shadowColor: Theme.of(context).primaryColor.withOpacity(0.5),
-                        disabledBackgroundColor: Theme.of(context).primaryColor.withOpacity(0.5),
-                      ),
-                      child: isLoading 
-                        ? const CircularProgressIndicator(color: Colors.white)
-                        : const Text(
-                            'Activate Alarm',
-                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                          ),
-                    ),
-                  ),
+                  
+                  const SizedBox(height: 48),
+                  _buildActivateButton(theme),
                   const SizedBox(height: 32),
                 ],
               ),
@@ -234,29 +229,114 @@ class _AddAlarmScreenState extends ConsumerState<AddAlarmScreen> {
     );
   }
 
-  Widget _buildSmartToggle(
-    String title,
-    String subtitle,
-    IconData icon,
-    bool value,
-    ValueChanged<bool> onChanged,
-  ) {
+  Widget _buildSectionTitle(String title) {
+    return Text(
+      title,
+      style: const TextStyle(
+        fontSize: 18,
+        fontWeight: FontWeight.w800,
+        letterSpacing: 0.5,
+      ),
+    );
+  }
+
+  Widget _buildCategoryList() {
+    return SizedBox(
+      height: 100,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: AlarmCategory.values.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 12),
+        itemBuilder: (context, index) {
+          final category = AlarmCategory.values[index];
+          final isSelected = selectedCategory == category;
+          return GestureDetector(
+            onTap: () => setState(() => selectedCategory = category),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              width: 100,
+              decoration: BoxDecoration(
+                color: isSelected ? Theme.of(context).primaryColor : const Color(0xFF16161D),
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(color: isSelected ? Colors.white24 : Colors.white.withOpacity(0.05)),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(category.icon, color: isSelected ? Colors.white : Colors.white38),
+                  const SizedBox(height: 8),
+                  Text(
+                    category.name,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: isSelected ? Colors.white : Colors.white38,
+                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildSmartToggle(String title, String subtitle, IconData icon, bool value, ValueChanged<bool> onChanged) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         color: const Color(0xFF16161D),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Colors.white.withOpacity(0.03)),
       ),
       child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-        leading: Icon(icon, color: Theme.of(context).primaryColor),
-        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-        subtitle: Text(subtitle, style: const TextStyle(color: Colors.white24, fontSize: 12)),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+        leading: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: Theme.of(context).primaryColor.withOpacity(0.1),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(icon, color: Theme.of(context).primaryColor, size: 20),
+        ),
+        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+        subtitle: Text(subtitle, style: const TextStyle(color: Colors.white24, fontSize: 11)),
         trailing: Switch.adaptive(
           value: value,
           onChanged: onChanged,
           activeColor: Theme.of(context).primaryColor,
         ),
+      ),
+    );
+  }
+
+  Widget _buildActivateButton(ThemeData theme) {
+    return SizedBox(
+      width: double.infinity,
+      height: 70,
+      child: ElevatedButton(
+        onPressed: isLoading ? null : saveAlarm,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: theme.primaryColor,
+          foregroundColor: Colors.white,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          elevation: 12,
+          shadowColor: theme.primaryColor.withOpacity(0.4),
+        ),
+        child: isLoading
+            ? const CircularProgressIndicator(color: Colors.white)
+            : const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.bolt_rounded),
+                  SizedBox(width: 12),
+                  Text(
+                    'ACTIVATE ALARM',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, letterSpacing: 1),
+                  ),
+                ],
+              ),
       ),
     );
   }
